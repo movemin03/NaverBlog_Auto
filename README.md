@@ -8,6 +8,7 @@
 주의사항
 -------------------------------
 불법적인 목적으로 남용될 경우, 네이버 봇에 의해 계정이 될 가능성이 있으니 조심하시길 바랍니다.
+
 -------------------------------
 Pyinstaller 관련
 -------------------------------
@@ -17,4 +18,3 @@ selenium, pyperclip, certifi, urllib3, pyautoit, autoit, webdriver_manager 라�
 본인의 경우 pyinstaller 사용 시 다음 명령을 사용하였습니다:
 
 pyinstaller BlogPostingAuto113.py --onefile --add-binary "chromedriver.exe;." --add-data="AutoItX3_x64.dll;autoit\lib" --hidden-import certifi --hidden-import urllib3 --hidden-import pyperclip --hidden-import webdriver-manager --hidden-import pyautoit --hidden-import autoit
-------------------------------
