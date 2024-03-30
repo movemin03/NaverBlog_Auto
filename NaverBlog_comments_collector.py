@@ -13,26 +13,50 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
+def sleep_short():
+    start_time1 = time.time()
+    target_time = start_time1 + 0.2
+    while time.time() < target_time:
+        pass
+
 # 사용자 정의
 ver = str("2024-03-30 18:00:00")
 user = os.getlogin()  # 유저 아이디(현재 자동 입력 중)
 
 # 크롬 드라이버 디버깅 모드 실행
 option = webdriver.ChromeOptions()
-option.add_argument('headless')
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"
 option.add_argument(f"user-agent={user_agent}")
-driver = webdriver.Chrome(options=option)
-wait_s = WebDriverWait(driver, 10)
 
 # 시작
 print("\n")
 print("네이버 블로그 댓글수집 프로그램입니다. 네이버 전용 " + ver)
-print("https://github.com/movemin03/NaverBlog_Auto")
-print("접속할 네이버 블로그 게시글 url 을 입력해주세요")
+print("https://github.com/movemin03/NaverBlog_Auto\n")
+print("접속할 블로그에 로그인이 필요합니까? y / n")
+print("해당 블로그의 소유주일 경우에는 y 를 권장합니다 (비밀 댓글도 수집할 수 있습니다)")
+a = input()
+if a == "y":
+    print("로그인이 필요한 것으로 확인되었습니다")
+    driver = webdriver.Chrome(options=option)
+    driver.get("https://nid.naver.com/nidlogin.login?url=https%3A%2F%2Fsection.blog.naver.com%2FBlogHome.naver")
+    print("로그인 진행 완료 후 아무값이나 입력해주세요")
+    a = input()
+else:
+    print("로그인이 필요 없는 것으로 확인되었습니다")
+    option.add_argument('headless')
+    driver = webdriver.Chrome(options=option)
 
+wait_s = WebDriverWait(driver, 10)
+print("\n접속할 네이버 블로그 게시글 url 을 입력해주세요")
 url = input()
-driver.get(url)
+
+# 프로그램이 완전히 켜질 때까지 대기
+while True:
+    try:
+        driver.get(url)
+        break
+    except:
+        sleep_short()
 
 # 저장소 생성
 c_list = []
@@ -57,14 +81,6 @@ wait_s.until(ec.presence_of_element_located((By.XPATH, pg_parent_xpath)))
 pg_parent = driver.find_element(By.XPATH, pg_parent_xpath)
 pg_elements = pg_parent.find_elements(By.CLASS_NAME, 'u_cbox_page')
 print("탐색할 총 페이지 수는 ", str(len(pg_elements)), " 페이지 입니다")
-
-
-def sleep_short():
-    start_time1 = time.time()
-    target_time = start_time1 + 0.2
-    while time.time() < target_time:
-        pass
-
 
 for pg_i in range(len(pg_elements)):
     print(str(pg_i + 1), " 페이지를 탐색합니다")
