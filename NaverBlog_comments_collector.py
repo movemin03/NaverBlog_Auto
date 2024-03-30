@@ -3,10 +3,10 @@ import os
 import subprocess
 import re
 import time
+from datetime import datetime
 
 # Third party imports
 import pandas as pd
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
@@ -19,12 +19,10 @@ ver = str("2024-03-30 18:00:00")
 user = os.getlogin()  # 유저 아이디(현재 자동 입력 중)
 
 # 크롬 드라이버 디버깅 모드 실행
-subprocess.Popen(
-    r'C:\Program Files\Google\Chrome\Application\chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\' + user + r'\\AppData\\Local\\Google\\Chrome\\User Data"')
-option = Options()
+option = webdriver.ChromeOptions()
+option.add_argument('headless')
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"
 option.add_argument(f"user-agent={user_agent}")
-option.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
 driver = webdriver.Chrome(options=option)
 wait_s = WebDriverWait(driver, 10)
 
@@ -34,8 +32,7 @@ print("네이버 블로그 댓글수집 프로그램입니다. 네이버 전용 
 print("https://github.com/movemin03/NaverBlog_Auto")
 print("접속할 네이버 블로그 게시글 url 을 입력해주세요")
 
-#"https://blog.naver.com/xsimplex/223368614115"
-url = "https://blog.naver.com/knoc3/221609564938"
+url = input()
 driver.get(url)
 
 # 저장소 생성
@@ -52,8 +49,13 @@ iframe = 'mainFrame'
 wait_s.until(ec.presence_of_element_located((By.ID, iframe)))
 driver.switch_to.frame(driver.find_element(By.ID, iframe))
 
-a = input("댓글 창을 열고 엔터!!")
-pg_parent = driver.find_element(By.XPATH, '//div[contains(@class, "u_cbox_page_wrap")]')
+c_btn_xpath = '//*[@id="Comi' + extracted_number + '"]'
+wait_s.until(ec.presence_of_element_located((By.XPATH, c_btn_xpath)))
+driver.find_element(By.XPATH, c_btn_xpath).click()
+
+pg_parent_xpath = '//div[contains(@class, "u_cbox_page_wrap")]'
+wait_s.until(ec.presence_of_element_located((By.XPATH, pg_parent_xpath)))
+pg_parent = driver.find_element(By.XPATH, pg_parent_xpath)
 pg_elements = pg_parent.find_elements(By.CLASS_NAME, 'u_cbox_page')
 print("탐색할 총 페이지 수는 ", str(len(pg_elements)), " 페이지 입니다")
 
@@ -94,19 +96,24 @@ for pg_i in range(len(pg_elements)):
             # 댓글 단 날짜
             c_date_xpath = './div[1]/div/div[3]/span[1]'
             try:
-                c_date = row.find_element(By.XPATH, c_date_xpath).text
+                c_date_pre1 = row.find_element(By.XPATH, c_date_xpath).text
+                c_date_pre2 = datetime.strptime(c_date_pre1, '%Y.%m.%d. %H:%M')
+                c_date = c_date_pre2.strftime('%Y-%m-%d %H:%M')
             except NoSuchElementException:
-                c_date = "9999.99.99 00:00"
+                c_date = "9999-01-01 00:00"
                 # stale element reference
 
             # 댓글 내용
             c_content_xpath = './div[1]/div/div[2]'
             try:
-                if c_date == "9999.99.99 00:00":
+                if str(c_date) == "9999-01-01 00:00":
                     c_content = "비밀 댓글입니다"
-                    c_date = row.find_element(By.XPATH, c_content_xpath).text
+                    c_date_pre1 = row.find_element(By.XPATH, c_content_xpath).text
+                    c_date_pre2 = datetime.strptime(c_date_pre1, '%Y.%m.%d. %H:%M')
+                    c_date = c_date_pre2.strftime('%Y-%m-%d %H:%M')
+
                     if c_date.replace(" ", "") == "":
-                        c_date = "9999.99.99 00:00"
+                        c_date = "9999-01-01 00:00"
                         c_content = "댓글이 삭제되었습니다."
 
                 else:
@@ -117,7 +124,7 @@ for pg_i in range(len(pg_elements)):
                 link_regex = r'(www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(https?://\S+)'
                 c_links_pre = str(re.findall(link_regex, c_content))
                 remove_chars = {"[": None, "]": None, "(": None, ")": None, "'": None, '"': None}
-                c_links = c_links_pre.translate(str.maketrans(remove_chars))
+                c_links = c_links_pre.translate(str.maketrans(remove_chars))[2:].replace(", ,", ",")
                 if not c_links:
                     c_links = "X"
             else:
