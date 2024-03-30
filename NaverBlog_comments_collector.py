@@ -21,7 +21,7 @@ def sleep_short():
 
 
 # 사용자 정의
-ver = str("2024-03-30 18:00:00")
+ver = str("2024-03-31 01:00:00")
 user = os.getlogin()  # 유저 아이디(현재 자동 입력 중)
 
 # 크롬 드라이버 디버깅 모드 실행
@@ -53,14 +53,6 @@ url = input()
 if "m.blog" in url:
     url = url.replace("m.blog", "blog")
 
-# 프로그램이 완전히 켜질 때까지 대기
-while True:
-    try:
-        driver.get(url)
-        break
-    except:
-        sleep_short()
-
 # 저장소 생성
 c_list = []
 
@@ -73,15 +65,26 @@ try:
     extracted_number = str(result.group(0))
 except:
     try:
-        pattern2 = r'logNo=(\d+)'
-        result = re.search(pattern2, url)
-        extracted_number = str(result.group(0))
+        blog_id = re.search(r'blogId=([^&]+)', url).group(1)
+        extracted_number = re.search(r'logNo=([^&]+)', url).group(1)
+        url = "https://blog.naver.com/" + blog_id + "/" + extracted_number
     except:
         print("url 패턴을 인식할 수 없습니다")
         print("엔터 입력 시 프로그램이 종료됩니다")
         a = input()
         exit()
 
+# 프로그램이 완전히 켜질 때까지 대기
+while True:
+    try:
+        driver.get(url)
+        driver.execute_script("var script = document.createElement('script');\
+                              script.src = 'https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap';\
+                              script.defer = true;\
+                              document.head.appendChild(script);")
+        break
+    except:
+        sleep_short()
 
 # iframe 변경
 iframe = 'mainFrame'
