@@ -8,7 +8,6 @@ from datetime import datetime
 # Third party imports
 import pandas as pd
 from selenium import webdriver
-from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -85,13 +84,13 @@ for pg_i in range(len(pg_elements)):
             c_id_xpath = './div[1]/div/div[1]/span[1]/a/span/span/span'
             try:
                 c_id = row.find_element(By.XPATH, c_id_xpath).text
-            except NoSuchElementException:
+            except:
                 c_id = "익명"
             # 댓글 단 사람의 블로그 주소
             c_id_url_xpath = './div[1]/div/div[1]/span[1]/a'
             try:
                 c_id_url = row.find_element(By.XPATH, c_id_url_xpath).get_attribute('href')
-            except NoSuchElementException:
+            except:
                 c_id_url = "익명"
             # 댓글 단 날짜
             c_date_xpath = './div[1]/div/div[3]/span[1]'
@@ -99,7 +98,7 @@ for pg_i in range(len(pg_elements)):
                 c_date_pre1 = row.find_element(By.XPATH, c_date_xpath).text
                 c_date_pre2 = datetime.strptime(c_date_pre1, '%Y.%m.%d. %H:%M')
                 c_date = c_date_pre2.strftime('%Y-%m-%d %H:%M')
-            except NoSuchElementException:
+            except:
                 c_date = "9999-01-01 00:00"
                 # stale element reference
 
@@ -118,7 +117,7 @@ for pg_i in range(len(pg_elements)):
 
                 else:
                     c_content = row.find_element(By.XPATH, c_content_xpath).text
-            except NoSuchElementException:
+            except:
                 c_content = "내용을 불러올 수 없습니다"
             if "www" or "http" in c_content:
                 link_regex = r'(www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(https?://\S+)'
@@ -143,7 +142,7 @@ for pg_i in range(len(pg_elements)):
             c_likes_xpath = './div[1]/div/div[4]/div/a/em'
             try:
                 c_likes = int(row.find_element(By.XPATH, c_likes_xpath).text)
-            except NoSuchElementException:
+            except:
                 c_likes = 0
             c_list.append((c_id, c_id_url, c_date, c_content, c_likes, c_links, c_email))
         if c_list:
@@ -164,3 +163,5 @@ while os.path.exists(file_path):
 
 df.to_excel(file_path, index=False)
 print(file_path, " 위치에 저장 완료되었습니다")
+
+a = input("아무키나 입력하면 종료됩니다")
