@@ -35,7 +35,7 @@ print("https://github.com/movemin03/NaverBlog_Auto")
 print("접속할 네이버 블로그 게시글 url 을 입력해주세요")
 
 #"https://blog.naver.com/xsimplex/223368614115"
-url = input()
+url = "https://blog.naver.com/knoc3/221609564938"
 driver.get(url)
 
 # 저장소 생성
@@ -127,6 +127,8 @@ for pg_i in range(len(pg_elements)):
                 c_email_pre = str(re.findall(email_regex, c_content))
                 remove_chars = {"[": None, "]": None, "(": None, ")": None, "'": None, '"': None}
                 c_email = c_email_pre.translate(str.maketrans(remove_chars))
+                if not c_email:
+                    c_links = "X"
             else:
                 c_email = "X"
 
