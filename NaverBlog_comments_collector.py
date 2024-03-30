@@ -1,6 +1,5 @@
 # Standard library imports
 import os
-import subprocess
 import re
 import time
 from datetime import datetime
@@ -12,12 +11,14 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+import openpyxl
 
 def sleep_short():
     start_time1 = time.time()
     target_time = start_time1 + 0.2
     while time.time() < target_time:
         pass
+
 
 # 사용자 정의
 ver = str("2024-03-30 18:00:00")
@@ -49,6 +50,8 @@ else:
 wait_s = WebDriverWait(driver, 10)
 print("\n접속할 네이버 블로그 게시글 url 을 입력해주세요")
 url = input()
+if "m.blog" in url:
+    url = url.replace("m.blog", "blog")
 
 # 프로그램이 완전히 켜질 때까지 대기
 while True:
@@ -63,9 +66,22 @@ c_list = []
 
 # 게시물 아이디 추출
 current_url = driver.current_url
-pattern = r'\d+$'
-result = re.search(pattern, url)
-extracted_number = str(result.group(0))
+
+try:
+    pattern1 = r'\d+$'
+    result = re.search(pattern1, url)
+    extracted_number = str(result.group(0))
+except:
+    try:
+        pattern2 = r'logNo=(\d+)'
+        result = re.search(pattern2, url)
+        extracted_number = str(result.group(0))
+    except:
+        print("url 패턴을 인식할 수 없습니다")
+        print("엔터 입력 시 프로그램이 종료됩니다")
+        a = input()
+        exit()
+
 
 # iframe 변경
 iframe = 'mainFrame'
@@ -130,11 +146,15 @@ for pg_i in range(len(pg_elements)):
                     if c_date.replace(" ", "") == "":
                         c_date = "9999-01-01 00:00"
                         c_content = "댓글이 삭제되었습니다."
-
                 else:
                     c_content = row.find_element(By.XPATH, c_content_xpath).text
+                if c_content is None or c_content == "":
+                    c_content = "표시할 텍스트가 없습니다(이모티콘만 있는 경우)"
             except:
                 c_content = "내용을 불러올 수 없습니다"
+
+
+
             if "www" or "http" in c_content:
                 link_regex = r'(www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(https?://\S+)'
                 c_links_pre = str(re.findall(link_regex, c_content))
@@ -180,4 +200,6 @@ while os.path.exists(file_path):
 df.to_excel(file_path, index=False)
 print(file_path, " 위치에 저장 완료되었습니다")
 
+driver.quit()
 a = input("아무키나 입력하면 종료됩니다")
+exit()
