@@ -128,7 +128,7 @@ for pg_i in range(len(pg_elements)):
                 remove_chars = {"[": None, "]": None, "(": None, ")": None, "'": None, '"': None}
                 c_email = c_email_pre.translate(str.maketrans(remove_chars))
                 if not c_email:
-                    c_links = "X"
+                    c_email = "X"
             else:
                 c_email = "X"
 
