@@ -123,13 +123,16 @@ def find_data():
         # 댓글 단 사람 이름
         c_id_css_selector = "div:nth-child(1) div div:nth-child(2) span:nth-child(1)"
         c_id_element = row.select_one(c_id_css_selector)
-        c_id = c_id_element.text
-        if c_id is None or c_id == "":
+
+        if c_id_element is None or c_id_element.text == "":
             c_id_css_selector = ".u_cbox_reply_area > ul > li > div > div > div.u_cbox_info > span.u_cbox_info_main > a > span > span > span"
             c_id_element = row.select_one(c_id_css_selector)
-            c_id = c_id_element.text
-            if c_id is None or c_id == "":
+            if c_id_element is None or c_id_element.text == "":
                 c_id = "익명"
+            else:
+                c_id = c_id_element.text
+        else:
+            c_id = c_id_element.text
 
         # 댓글 단 사람의 블로그 주소
         c_id_url_css_selector = '.u_cbox_comment_box.u_cbox_type_profile > div > div.u_cbox_info > span.u_cbox_info_main > a'
@@ -156,6 +159,13 @@ def find_data():
         c_content_element = row.select_one(c_content_css_selector)
         if c_content_element:
             c_content = c_content_element.text
+            try:
+                date_format = "%Y.%m.%d. %H:%M"
+                c_date = datetime.strptime(c_content, date_format)
+                c_content = "비밀 댓글입니다."
+                print("dfas")
+            except ValueError:
+                pass
         else:
             c_content = "내용을 불러올 수 없습니다"
 
