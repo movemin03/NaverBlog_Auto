@@ -3,16 +3,14 @@ import os
 import re
 import time
 from datetime import datetime
-import math
 
 # Third party imports
+from bs4 import BeautifulSoup
 import pandas as pd
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
 import openpyxl
+
 
 def sleep_short():
     start_time1 = time.time()
@@ -45,14 +43,11 @@ if a == "y":
     a = input()
 else:
     print("로그인이 필요 없는 것으로 확인되었습니다")
-    option.add_argument('headless')
     driver = webdriver.Chrome(options=option)
 
 wait_s = WebDriverWait(driver, 10)
 print("\n접속할 네이버 블로그 게시글 url 을 입력해주세요")
 url = input()
-if "m.blog" in url:
-    url = url.replace("m.blog", "blog")
 
 # 저장소 생성
 c_list = []
@@ -69,16 +64,15 @@ try:
 except:
     print("method2")
     try:
-        pattern1 = r'\d+$'
-        result = re.search(pattern1, url)
-        extracted_number = str(result.group(0))
-        print(extracted_number)
+        split_url = url.split("com/")[1]
+        blog_id, extracted_number = split_url.split("/")
     except:
         print("url 패턴을 인식할 수 없습니다")
         print("엔터 입력 시 프로그램이 종료됩니다")
         a = input()
         exit()
-print(url)
+url = "https://m.blog.naver.com/CommentList.naver?blogId=" + blog_id + "&logNo=" + extracted_number
+
 # 프로그램이 완전히 켜질 때까지 대기
 while True:
     try:
@@ -91,160 +85,120 @@ while True:
     except:
         sleep_short()
 
-# iframe 변경
-iframe = 'mainFrame'
-wait_s.until(ec.presence_of_element_located((By.ID, iframe)))
-driver.switch_to.frame(driver.find_element(By.ID, iframe))
+time.sleep(2)
+driver.execute_script("window.scrollTo(0, 0);")
+while True:
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    driver.execute_script("window.scrollTo(0, 0);")
+    time.sleep(1)
+    new_height = driver.execute_script("return document.body.scrollHeight")
+    if new_height == last_height:
+        break
 
-c_btn_xpath = '//*[@id="Comi' + extracted_number + '"]'
-wait_s.until(ec.presence_of_element_located((By.XPATH, c_btn_xpath)))
-driver.find_element(By.XPATH, c_btn_xpath).click()
+time.sleep(2)
+
+html = driver.page_source
+soup = BeautifulSoup(html, 'html.parser')
+driver.quit()
+
+# 저장소 생성
+c_save = []
+
 
 def find_data():
-    pg_parent_xpath = '//div[contains(@class, "u_cbox_page_wrap")]'
-    wait_s.until(ec.presence_of_element_located((By.XPATH, pg_parent_xpath)))
-    pg_parent = driver.find_element(By.XPATH, pg_parent_xpath)
-    pg_elements = pg_parent.find_elements(By.CLASS_NAME, 'u_cbox_page')
-    global sub_page
-    print("현재화면에서 ", str(len(pg_elements)), " 페이지를 탐색합니다")
+    c_list_css_selector = '#naverComment_wai_u_cbox_content_wrap_tabpanel > ul'
+    c_list = soup.select(c_list_css_selector)
 
-    for pg_i in range(len(pg_elements)):
-        print(str(pg_i + 1), " 페이지를 탐색합니다")
-        pg_parent2 = driver.find_element(By.XPATH, '//div[contains(@class, "u_cbox_page_wrap")]')
-        pg_elements2 = pg_parent2.find_elements(By.CLASS_NAME, 'u_cbox_page')
-        pg_elements2[pg_i].click()
-        sleep_short()
-        c_list_xpath = '//*[@id="naverComment_201_' + extracted_number + '_wai_u_cbox_content_wrap_tabpanel"]/ul'  # c = comments 약자로 사용
-        wait_s.until(ec.presence_of_element_located((By.XPATH, c_list_xpath)))
-        c_rows_xpath = c_list_xpath + "//li"
+    # c_list 내의 각 li 요소 선택
+    rows = c_list[0].find_all('li')
 
-        attempt = 0
-        while attempt < 3:
-            rows = driver.find_elements(By.XPATH, c_rows_xpath)
-            for row in rows:
-                #대댓글 여부
-                nested_comments_xpath = "./div[1]/span[@class='u_cbox_ico_reply']"
-                try:
-                    c_id = row.find_element(By.XPATH, nested_comments_xpath)
-                    nested_comment = "O"
-                except:
-                    nested_comment = "X"
-                # 댓글 단 사람 이름
-                c_id_xpath = './div[1]/div/div[1]/span[1]/a/span/span/span'
-                try:
-                    c_id = row.find_element(By.XPATH, c_id_xpath).text
-                except:
-                    c_id = "익명"
-                # 댓글 단 사람의 블로그 주소
-                c_id_url_xpath = './div[1]/div/div[1]/span[1]/a'
-                try:
-                    c_id_url = row.find_element(By.XPATH, c_id_url_xpath).get_attribute('href')
-                except:
-                    c_id_url = "익명"
-                # 댓글 단 날짜
-                c_date_xpath = ".//span[@class='u_cbox_date']"
-                try:
-                    c_date_pre1 = row.find_element(By.XPATH, c_date_xpath).text
-                    c_date_pre2 = datetime.strptime(c_date_pre1, '%Y.%m.%d. %H:%M')
-                    c_date = c_date_pre2.strftime('%Y-%m-%d %H:%M')
-                except:
-                    c_date = "9999-01-01 00:00"
-                    # stale element reference
+    for row in rows:
+        # 대댓글 여부 확인 egarggg
+        if row.find('div').find(class_="u_cbox_ico_reply"):
+            nested_comment = 'O'
+        else:
+            nested_comment = 'X'
+        print("대댓글 여부:", nested_comment)
 
-                # 댓글 내용
-                c_content_xpath = './div[1]/div/div[2]'
-                try:
-                    if str(c_date) == "9999-01-01 00:00":
-                        c_content = "비밀 댓글입니다"
-                        c_date_pre1 = row.find_element(By.XPATH, c_content_xpath).text
-                        c_date_pre2 = datetime.strptime(c_date_pre1, '%Y.%m.%d. %H:%M')
-                        c_date = c_date_pre2.strftime('%Y-%m-%d %H:%M')
+        # 댓글 단 사람 이름
+        c_id_css_selector = "div:nth-child(1) div div:nth-child(2) span:nth-child(1)"
+        c_id_element = row.select_one(c_id_css_selector)
+        c_id = c_id_element.text
+        if c_id is None or c_id == "":
+            c_id_css_selector = ".u_cbox_reply_area > ul > li > div > div > div.u_cbox_info > span.u_cbox_info_main > a > span > span > span"
+            c_id_element = row.select_one(c_id_css_selector)
+            c_id = c_id_element.text
+            if c_id is None or c_id == "":
+                c_id = "익명"
 
-                        if c_date.replace(" ", "") == "":
-                            c_date = "9999-01-01 00:00"
-                            c_content = "댓글이 삭제되었습니다."
-                    else:
-                        c_content = row.find_element(By.XPATH, c_content_xpath).text
-                    if c_content is None or c_content == "":
-                        c_content = "표시할 텍스트가 없습니다(이모티콘만 있는 경우)"
-                except Exception as e:
-                    print(e)
-                    c_content = "내용을 불러올 수 없습니다"
+        # 댓글 단 사람의 블로그 주소
+        c_id_url_css_selector = '.u_cbox_comment_box.u_cbox_type_profile > div > div.u_cbox_info > span.u_cbox_info_main > a'
+        c_id_url_element = row.select_one(c_id_url_css_selector)
+        c_id_url = str(c_id_url_element['href']) if c_id_url_element else "익명"
 
-                if "www" or "http" in c_content:
-                    link_regex = r'(www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(https?://\S+)'
-                    c_links_pre = str(re.findall(link_regex, c_content))
-                    remove_chars = {"[": None, "]": None, "(": None, ")": None, "'": None, '"': None}
-                    c_links = c_links_pre.translate(str.maketrans(remove_chars))[2:].replace(", ,", ",")
-                    if not c_links:
-                        c_links = "X"
-                else:
-                    c_links = "X"
-                if "@" in c_content[1:]:
-                    email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-                    c_email_pre = str(re.findall(email_regex, c_content))
-                    remove_chars = {"[": None, "]": None, "(": None, ")": None, "'": None, '"': None}
-                    c_email = c_email_pre.translate(str.maketrans(remove_chars))
-                    if not c_email:
-                        c_email = "X"
-                else:
-                    c_email = "X"
-
-                # 댓글 좋아요 수
-                c_likes_xpath = './div[1]/div/div[4]/div/a/em'
-                try:
-                    c_likes = int(row.find_element(By.XPATH, c_likes_xpath).text)
-                except:
-                    c_likes = 0
-
-                # 댓글 내 이미지 링크
-                comment_img_xpath = './div[1]/div/div[3]/div/a/img'
-                try:
-                    comment_img = row.find_element(By.XPATH, comment_img_xpath).get_attribute('src')
-                    if "?type=" in comment_img:
-                        comment_img = comment_img.split('?type=')[0]
-                except:
-                    try:
-                        comment_img_xpath = './div[1]/div/span/a/img'
-                        comment_img = row.find_element(By.XPATH, comment_img_xpath).get_attribute('src')
-                    except:
-                        comment_img = "X"
-
-                c_list.append((nested_comment, c_id, c_id_url, c_date, c_content, c_likes, c_links, c_email, comment_img))
-            if c_list:
-                break
-
-
-total_page_xpath = '//*[@id="commentCount"]'
-
-try:
-    wait_s.until(ec.presence_of_element_located((By.XPATH, total_page_xpath)))
-    total_page = driver.find_element(By.XPATH, total_page_xpath).get_attribute("textContent").replace(" ", "").replace(",", "")
-    print("총 댓글 수는  ", total_page, "입니다")
-    total_page = math.ceil(int(total_page) / 50)
-    print("총 페이지 수는  ", total_page, "입니다")
-except Exception as e:
-    print("총 댓글 수 탐색 실패:", e)
-    total_page = 0
-
-
-for next_page in range(math.ceil(total_page/10)):
-    find_data()
-    previous_btn_xpath = '//*[@id="naverComment_201_' + extracted_number + '"]/div/div[4]/div/a[2]'
-    attempt = 0
-    while attempt < 3:
+        # 댓글 단 날짜
         try:
-            driver.find_element(By.XPATH, previous_btn_xpath).click()
-            time.sleep(1)
-            break
-        except Exception as e:
-            print(e)
-            attempt += 1
-            time.sleep(1)
+            c_date_css_selector = "div:nth-child(1) div div:nth-child(3) span"
+            c_date_pre1 = row.select_one(c_date_css_selector).text
+            c_date_pre2 = datetime.strptime(c_date_pre1, '%Y.%m.%d. %H:%M')
+            c_date = str(c_date_pre2.strftime('%Y-%m-%d %H:%M'))
+        except:
+            try:
+                c_date_css_selector = "div:nth-child(1) > div > div:nth-child(4) > span"
+                c_date_pre1 = row.select_one(c_date_css_selector).text
+                c_date_pre2 = datetime.strptime(c_date_pre1, '%Y.%m.%d. %H:%M')
+                c_date = str(c_date_pre2.strftime('%Y-%m-%d %H:%M'))
+            except:
+                c_date = "9999-01-01 00:00"
+
+        # 댓글 내용
+        c_content_css_selector = "div:nth-child(1) > div > div:nth-child(2) > span:nth-child(1)"
+        c_content_element = row.select_one(c_content_css_selector)
+        if c_content_element:
+            c_content = c_content_element.text
+        else:
+            c_content = "내용을 불러올 수 없습니다"
+
+        # 댓글 좋아요 수
+        c_likes_css_selector = "div:nth-child(1) div div:nth-child(4) div a em"
+        c_likes_element = row.select_one(c_likes_css_selector)
+        c_likes = int(c_likes_element.text) if c_likes_element else 0
+
+        # 댓글 내 이미지 링크
+        comment_img_css_selector = 'div > div > div:nth-child(3) > div > a > img'
+        comment_img_element = row.select_one(comment_img_css_selector)
+        comment_img = str(comment_img_element['src']) if comment_img_element else "X"
+        if "?type=" in comment_img:
+            comment_img = comment_img.split('?type=')[0]
+
+        # 댓글 내 링크 및 이메일 체크
+        if "www" in c_content or "http" in c_content:
+            link_regex = r'(www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})|(https?://\S+)'
+            c_links_pre = str(re.findall(link_regex, c_content))
+            remove_chars = {"[": None, "]": None, "(": None, ")": None, "'": None, '"': None}
+            c_links = c_links_pre.translate(str.maketrans(remove_chars))[2:].replace(", ,", ",")
+            if not c_links:
+                c_links = "X"
+        else:
+            c_links = "X"
+        if "@" in c_content[1:]:
+            email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            c_email_pre = str(re.findall(email_regex, c_content))
+            remove_chars = {"[": None, "]": None, "(": None, ")": None, "'": None, '"': None}
+            c_email = c_email_pre.translate(str.maketrans(remove_chars))
+            if not c_email:
+                c_email = "X"
+        else:
+            c_email = "X"
+        #
+        c_save.append((nested_comment, c_id, c_id_url, c_date, c_content, c_likes, c_links, c_email, comment_img))
+
+
+find_data()
 
 # 데이터프레임으로 변환
 print("수집이 완료되어 바탕화면에 파일로 저장합니다")
-df = pd.DataFrame(c_list, columns=["대댓글 여부", "댓쓴이", "댓쓴이 URL", "날짜", "댓글 내용", "공감 수", "댓글 내 링크", "댓글 내 이메일", "댓글 내 이미지"])
+df = pd.DataFrame(c_save, columns=["대댓글 여부", "댓쓴이", "댓쓴이 URL", "날짜", "댓글 내용", "공감 수", "댓글 내 링크", "댓글 내 이메일", "댓글 내 이미지"])
 
 # Excel 파일로 저장
 file_path = "C:\\Users\\" + user + "\\Desktop\\댓글수집.xlsx"
