@@ -14,13 +14,13 @@ import openpyxl
 
 def sleep_short():
     start_time1 = time.time()
-    target_time = start_time1 + 0.2
+    target_time = start_time1 + 0.5
     while time.time() < target_time:
         pass
 
 
 # 사용자 정의
-ver = str("2024-04-19 01:00:00")
+ver = str("2024-04-20 01:00:00")
 user = os.getlogin()  # 유저 아이디(현재 자동 입력 중)
 
 # 크롬 드라이버 디버깅 모드 실행
@@ -56,16 +56,17 @@ c_list = []
 current_url = driver.current_url
 
 try:
-    print("method1")
+    print("method1 사용한 url 변경 중")
     blog_id = re.search(r'blogId=([^&]+)', url).group(1)
     extracted_number = re.search(r'logNo=([^&]+)', url).group(1)
     url = "https://blog.naver.com/" + blog_id + "/" + extracted_number
-    print(extracted_number)
+    print("url 변경완료")
 except:
-    print("method2")
+    print("method1 사용불가: method2 사용한 url 변경 중")
     try:
         split_url = url.split("com/")[1]
         blog_id, extracted_number = split_url.split("/")
+        print("url 변경완료")
     except:
         print("url 패턴을 인식할 수 없습니다")
         print("엔터 입력 시 프로그램이 종료됩니다")
@@ -73,6 +74,7 @@ except:
         exit()
 url = "https://m.blog.naver.com/CommentList.naver?blogId=" + blog_id + "&logNo=" + extracted_number
 
+print("프로그램 실행여부 확인 중")
 # 프로그램이 완전히 켜질 때까지 대기
 while True:
     try:
@@ -85,18 +87,20 @@ while True:
     except:
         sleep_short()
 
+print("댓글 내용을 로딩하는 중")
 time.sleep(2)
 driver.execute_script("window.scrollTo(0, 0);")
 while True:
     last_height = driver.execute_script("return document.body.scrollHeight")
     driver.execute_script("window.scrollTo(0, 0);")
-    time.sleep(1)
+    sleep_short()
     new_height = driver.execute_script("return document.body.scrollHeight")
     if new_height == last_height:
         break
 
 time.sleep(2)
 
+print("댓글 데이터를 읽어들이는 중")
 html = driver.page_source
 soup = BeautifulSoup(html, 'html.parser')
 driver.quit()
@@ -113,12 +117,12 @@ def find_data():
     rows = c_list[0].find_all('li')
 
     for row in rows:
+        print("댓글 데이터 처리중")
         # 대댓글 여부 확인 egarggg
         if row.find('div').find(class_="u_cbox_ico_reply"):
             nested_comment = 'O'
         else:
             nested_comment = 'X'
-        print("대댓글 여부:", nested_comment)
 
         # 댓글 단 사람 이름
         c_id_css_selector = "div:nth-child(1) div div:nth-child(2) span:nth-child(1)"
@@ -163,7 +167,6 @@ def find_data():
                 date_format = "%Y.%m.%d. %H:%M"
                 c_date = datetime.strptime(c_content, date_format)
                 c_content = "비밀 댓글입니다."
-                print("dfas")
             except ValueError:
                 pass
         else:
