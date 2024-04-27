@@ -25,7 +25,7 @@ user = os.getlogin()  # 유저 아이디(현재 자동 입력 중)
 
 # 크롬 드라이버 디버깅 모드 실행
 option = webdriver.ChromeOptions()
-user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0"
 option.add_argument(f"user-agent={user_agent}")
 
 # 시작
