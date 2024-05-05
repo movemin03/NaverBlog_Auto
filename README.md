@@ -1,4 +1,4 @@
-# NaverBlog_Auto (English Description)
+# NaverBlog_Auto (English Description) ❤️👍
 
 NaverBlog_Auto is an all-in-one program designed for bulk posting and comment collection on Naver blogs.
 
@@ -41,7 +41,8 @@ For PyInstaller, use the following command:
 pyinstaller BlogPostingAuto113.py --onefile --add-binary "chromedriver.exe;." --add-data="AutoItX3_x64.dll;autoit\lib" --hidden-import certifi --hidden-import urllib3 --hidden-import pyperclip --hidden-import webdriver-manager --hidden-import pyautoit --hidden-import autoit
 ```
 ---
-# NaverBlog_Auto (한국어 설명)
+---
+# NaverBlog_Auto (한국어 설명) ❤️👍
 
 NaverBlog_Auto는 네이버 블로그 대량 포스팅 및 댓글 수집을 위한 올인원 프로그램입니다.
 
