@@ -11,7 +11,12 @@ A program designed to collect comments from Naver blogs. Simply input the blog l
 After running the program, simply input the URL you wish to track!
 
 **Requirements:**
+```python
+pip install pandas, bs4, selenium, openpyxl, lxml
+```
 
+**Exporting as Executable:**
+For PyInstaller, use the following command:
 ```cmd
 pyinstaller NaverBlog_comments_collector.py --onefile --hidden-import os --hidden-import re --hidden-import time --hidden-import datetime --hidden-import pandas --hidden-import bs4 --hidden-import selenium --hidden-import openpyxl --hidden-import lxml
 
@@ -30,6 +35,8 @@ pip install selenium, pyperclip, certifi, urllib3, pyautoit, autoit, webdriver_m
 ```
 you can download "autoit" programe [here](https://www.autoitscript.com/site/autoit/downloads/).
 
+**Exporting as Executable:**
+For PyInstaller, use the following command:
 ```cmd
 pyinstaller BlogPostingAuto113.py --onefile --add-binary "chromedriver.exe;." --add-data="AutoItX3_x64.dll;autoit\lib" --hidden-import certifi --hidden-import urllib3 --hidden-import pyperclip --hidden-import webdriver-manager --hidden-import pyautoit --hidden-import autoit
 ```
@@ -47,6 +54,12 @@ NaverBlog_Auto는 네이버 블로그 대량 포스팅 및 댓글 수집을 위�
 프로그램을 실행한 후 추적하려는 URL을 입력하십시오!
 
 **요구 사항:**
+```python
+pip install pandas, bs4, selenium, openpyxl, lxml
+```
+
+**실행 파일로 내보내기:**
+그 이후 아래 예시 코드를 활용해주세요.
 ```cmd
 pyinstaller NaverBlog_comments_collector.py --onefile --hidden-import os --hidden-import re --hidden-import time --hidden-import datetime --hidden-import pandas --hidden-import bs4 --hidden-import selenium --hidden-import openpyxl --hidden-import lxml
 ```
@@ -63,6 +76,8 @@ pip install selenium, pyperclip, certifi, urllib3, pyautoit, autoit, webdriver_m
 ```
 "autoit" 프로그램은 [여기](https://www.autoitscript.com/site/autoit/downloads/) 에서 다운로드할 수 있습니다.
 
+**실행 파일로 내보내기:**
+그 이후 아래 예시 코드를 활용해주세요.
 ```cmd
 pyinstaller BlogPostingAuto113.py --onefile --add-binary "chromedriver.exe;." --add-data="AutoItX3_x64.dll;autoit\lib" --hidden-import certifi --hidden-import urllib3 --hidden-import pyperclip --hidden-import webdriver-manager --hidden-import pyautoit --hidden-import autoit
 ```
