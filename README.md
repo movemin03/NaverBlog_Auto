@@ -5,7 +5,7 @@ NaverBlog_Auto is an all-in-one program designed for bulk posting and comment co
 ## 1. NaverBlog_comments_collector.py
 
 **Description:**
-A program designed to collect comments from Naver blogs. Simply input the blog link, and it will be automatically recognized. Developed in the Chrome 123 environment.
+A program designed to collect comments from Naver blogs. Simply input the blog link, and it will be automatically recognized. Developed in the Chrome 136 environment.
 
 **Usage:**
 After running the program, simply input the URL you wish to track!
@@ -33,7 +33,7 @@ This program is primarily intended for uploading class schedules or announcement
 ```python
 pip install selenium, pyperclip, certifi, urllib3, pyautoit, autoit, webdriver_manager
 ```
-you can download "autoit" programe [here](https://www.autoitscript.com/site/autoit/downloads/).
+you can download "autoit" program [here](https://www.autoitscript.com/site/autoit/downloads/).
 
 **Exporting as Executable:**
 For PyInstaller, use the following command:
@@ -49,7 +49,7 @@ NaverBlog_Auto는 네이버 블로그 대량 포스팅 및 댓글 수집을 위�
 ## 1. NaverBlog_comments_collector.py
 
 **설명:**
-네이버 블로그에서 댓글을 수집하는 프로그램입니다. 블로그 링크를 입력하면 자동으로 인식됩니다. Chrome 123 환경에서 개발되었습니다.
+네이버 블로그에서 댓글을 수집하는 프로그램입니다. 블로그 링크를 입력하면 자동으로 인식됩니다. Chrome 136 환경에서 개발되었습니다.
 
 **사용 방법:**
 프로그램을 실행한 후 추적하려는 URL을 입력하십시오!
