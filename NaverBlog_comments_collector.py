@@ -268,12 +268,38 @@ class NaverBlogCommentCollector:
         dialog.destroy()
         self.stop_collection()
 
+    def convert_mobile_to_desktop_url(self, url):
+        """모바일 URL을 데스크탑 버전으로 변환"""
+        try:
+            # 모바일 URL 패턴 확인 및 변환
+            if "m.blog.naver.com" in url:
+                # m.blog.naver.com을 blog.naver.com으로 변환
+                desktop_url = url.replace("m.blog.naver.com", "blog.naver.com")
+
+                # referrerCode와 같은 불필요한 파라미터 제거
+                if "?" in desktop_url:
+                    desktop_url = desktop_url.split("?")[0]
+
+                self.log(f"모바일 URL을 데스크탑 버전으로 변환: {url} -> {desktop_url}")
+                return desktop_url
+
+            # 이미 데스크탑 버전이거나 다른 형식인 경우 그대로 반환
+            return url
+
+        except Exception as e:
+            self.log(f"URL 변환 중 오류 발생: {str(e)}")
+            return url
+
     def process_url(self):
         if not self.is_running:
             return
 
         url = self.url_entry.get().strip()
         self.log(f"입력된 URL: {url}")
+
+        # 모바일 URL을 데스크탑 버전으로 변환
+        url = self.convert_mobile_to_desktop_url(url)
+        self.log(f"변환된 URL: {url}")
 
         try:
             # 게시물 아이디 추출
